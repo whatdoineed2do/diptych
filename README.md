@@ -14,15 +14,17 @@ Remove `-DGEN_EXIF` and references to `pkg-config exiv2` if exif info is not req
 
 ## Example Usage
 ### Typical ###
-create a horizontal dipytch (`-s 1:1`) from the 2 images, creating an internal border (`-b`) of 50pxls and external boder (`-B`) of 10pxls using white (`-C white` which is default) as the border colour.
+create a horizontal dipytch (`-s 1:1`) from the 2 images, creating an internal border (`-b`) of 50pxls and external boder (`-B`) of 10pxls using black (`-C black` where white is default) as the border colour.
 
-![Alt text](blue.jpg?raw=true "BLUE")
-![Alt text](red.jpg?raw=true "RED")
+Inputs:
+- ![Alt text](blue.jpg?raw=true "BLUE 300x300") 300x300
+- ![Alt text](red.jpg?raw=true "RED 200x400") 200x400
 
 ```
-diptych -O 300 -B 10 -b 50 -C white -s 1:1  blue.jpg red.jpg -o final.jpg
+diptych -O 300 -B 10 -b 50 -C black -s 1:1  blue.jpg red.jpg -o final.jpg
 ```
-![Alt text](final.jpg?raw=true "RED")
+Resulting in an 300x185 image that is scaled to the requested output (note the size of text on 'red')
+![Alt text](final.jpg?raw=true "final.jpg")
 
 To create a vertical dipytch using the same files above, use `-s 2`
 
