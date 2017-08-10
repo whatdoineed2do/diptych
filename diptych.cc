@@ -55,10 +55,13 @@ using namespace  std;
 #endif
 
 /*
-   g++ -DGEN_EXIF -DNEED_UCHAR_UINT_T diptych.cc \
-       $(/usr/local/bin/Magick++-config --cppflags --cxxflags --libs) \
-       -lexiv2 -lexpat -lz
+    g++ -DGEN_EXIF -DNEED_UCHAR_UINT_T \
+       $(pkg-config Magick++ --cflags) $(pkg-config exiv2 --cflags) \
+       diptych.cc \
+       $(pkg-config Magick++ --libs) $(pkg-config exiv2 --libs) \
+     -o diptych
  */
+
 #ifdef NEED_UCHAR_UINT_T
 typedef unsigned char  uchar_t;
 typedef unsigned int   uint_t;
