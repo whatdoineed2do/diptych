@@ -56,9 +56,10 @@ using namespace  std;
 
 /*
     g++ -DGEN_EXIF -DNEED_UCHAR_UINT_T \
+       -fopenmp -pthread \
        $(pkg-config Magick++ --cflags) $(pkg-config exiv2 --cflags) \
        diptych.cc \
-       $(pkg-config Magick++ --libs) $(pkg-config exiv2 --libs) \
+       $(pkg-config Magick++ --libs) $(pkg-config exiv2 --libs) -lpthread \
      -o diptych
  */
 
@@ -700,6 +701,8 @@ int main(int argc, char* const argv[])
     list<ushort_t>  verts;
     uint_t  reqfiles = 1;
 
+    Magick::InitializeMagick("");
+
     int  c;
     while ( (c = getopt(argc, argv, "b:B:c:C:s:O:ho:q:vr:R:S:f:")) != EOF) {
 	switch (c)
@@ -1009,6 +1012,8 @@ usage:
     for (list<VImgFrame*>::iterator i=verticals.begin(); i!=verticals.end(); ++i) {
 	delete *i;
     }
+
+    Magick::TerminateMagick();
 
     return retcode;
 }
