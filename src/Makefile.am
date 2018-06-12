@@ -1,7 +1,7 @@
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 
-AM_CXXFLAGS = $(MAGICK_CFLAGS) $(EXIV_CFLAGS) -Wno-conversion-null -Wno-deprecated
-AM_LDFLAGS  = $(MAGICK_LIBS) ${EXIV_LIBS)
+AM_CXXFLAGS = $(IMAGEMAGICK_CFLAGS) $(EXIV_CFLAGS) -Wno-conversion-null -Wno-deprecated
+AM_LDFLAGS  = $(IMAGEMAGICK_LIBS) $(EXIV_LIBS)
 
 bin_PROGRAMS = diptych
 
