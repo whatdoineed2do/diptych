@@ -5,10 +5,11 @@ AM_LDFLAGS  = $(IMAGEMAGICK_LIBS) $(EXIV_LIBS)
 
 bin_PROGRAMS = diptych
 
-diptych_CPPFLAGS = -DGEN_EXIF -DNEED_UCHAR_UINT_T
+diptych_CPPFLAGS = -DGEN_EXIF
 diptych_CXXFLAGS = $(AM_CXXFLAGS)
 #diptych_LDFLAGS = 
 #diptych_LDADD =
 diptych_SOURCES = \
+	Frame.cc \
 	diptych.cc
 
