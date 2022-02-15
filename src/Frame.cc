@@ -100,7 +100,7 @@ bool  ImgFrame::Exif::clean(const Exif& rhs_)
 }
 
 
-Magick::Image  ImgFrame::process(const unsigned  trgt_)  throw (std::underflow_error)
+Magick::Image  ImgFrame::process(const unsigned  trgt_)
 {
     if (_imgs.empty()) {
 	throw std::underflow_error("ImgFrame: no internal imgs");

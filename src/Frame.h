@@ -28,7 +28,7 @@ class Frame
     Frame(const Frame&) = delete;
     void operator=(const Frame&) = delete;
 
-   virtual Magick::Image  process(const unsigned)  throw (std::underflow_error) = 0;
+   virtual Magick::Image  process(const unsigned) = 0;
 
   protected:
     Frame() = default;
@@ -123,7 +123,7 @@ class ImgFrame : public Frame
     const _ImgFrame&  back() const
     { return *_imgs.back(); }
 
-    Magick::Image  process(const unsigned)  throw (std::underflow_error);
+    Magick::Image  process(const unsigned);
 
     /* consolidated exif across all the push_back'd img frames
      */
