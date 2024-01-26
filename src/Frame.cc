@@ -161,8 +161,8 @@ Magick::Image  ImgFrame::process(const unsigned  trgt_)
 }
 ImgFrame::~ImgFrame()
 {
-    for (ImgFrame::Imgs::iterator i=_imgs.begin(); i!=_imgs.end(); ++i) {
-	delete *i;
+    for (auto& i : _imgs) {
+	delete i;
     }
     delete _exif;
 }
@@ -192,9 +192,9 @@ void  ImgFrame::push_back(const char* img_)
 const unsigned  ImgFrame::ttly()
 {
     unsigned  y = 0;
-    for (ImgFrame::Imgs::const_iterator i=_imgs.begin(); i!=_imgs.end(); ++i)
+    for (const auto& i : _imgs)
     {
-	const _ImgFrame&  img = **i;
+	const _ImgFrame&  img = *i;
 
 	// figure out the scaling ratio so that all X are the same -
 	// affects the Y
@@ -274,9 +274,9 @@ Magick::Image  VImgFrame::_process(const unsigned  trgt_)
     const double  smallestx = _smallest->cols();
     bool  skip = false;
     unsigned  j = 0;
-    for (ImgFrame::Imgs::iterator i=_imgs.begin(); i!=_imgs.end(); ++i)
+    for (auto&  i : _imgs)
     {
-	Magick::Image&  img = (*i)->_read();
+	Magick::Image&  img = i->_read();
 
 	unsigned  trgt = 0;
 	if (++j == _imgs.size())
@@ -316,12 +316,11 @@ Magick::Image  VImgFrame::_process(const unsigned  trgt_)
     DIPTYCH_VERBOSE_LOG("vert frame dest cols=" << dest.columns() << " rows=" << dest.rows() << " seperator=" << _padding.intnl << " colour=" << thegopts.border.colour);
 
     unsigned  y = 0;
-    for (ImgFrame::_MImgs::const_iterator i=imgs.begin(); i!=imgs.end(); ++i)
+    for (const auto& img : imgs)
     {
-	const Magick::Image&  img = *i;
 	dest.composite(img, 0, y);
 
-	DIPTYCH_VERBOSE_LOG("  y=" << std::setw(5) << y << " input cols=" << img.columns() << " rows=" << img.rows() << "  (" << i->fileName() << ")  { " << ImgFrame::Exif(img) << " }");
+	DIPTYCH_VERBOSE_LOG("  y=" << std::setw(5) << y << " input cols=" << img.columns() << " rows=" << img.rows() << "  (" << img.fileName() << ")  { " << ImgFrame::Exif(img) << " }");
 
 	DIPTYCH_DEBUG_LOG("VF=" << this << " stacking y pos=" << y << " img rows=" << img.rows());
 
@@ -336,9 +335,9 @@ Magick::Image  HImgFrame::_process(const unsigned  trgt_)
     ImgFrame::_MImgs  imgs;
 
     bool  skip = false;
-    for (ImgFrame::Imgs::iterator i=_imgs.begin(); i!=_imgs.end(); ++i)
+    for (auto& i : _imgs)
     {
-	Magick::Image&  img = (*i)->_read();
+	Magick::Image&  img = i->_read();
 	imgs.push_back(img);
 
 	if (skip) {
@@ -378,8 +377,7 @@ Magick::Image  HImgFrame::_process(const unsigned  trgt_)
 	y = _padding.extnl;
     }
 
-    for (ImgFrame::_MImgs::const_iterator i=imgs.begin(); i!=imgs.end(); ++i) {
-	const Magick::Image&  img = *i;
+    for (const auto& img : imgs) {
 	dest.composite(img, x, y);
 	DIPTYCH_VERBOSE_LOG("  x=" << std::setw(5) << x << " input cols=" << img.columns() << " rows=" << img.rows());
 	x += img.columns() + _padding.intnl;
