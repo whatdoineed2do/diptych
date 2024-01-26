@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
@@ -21,10 +25,6 @@
 using namespace  std;
 
 #include <Magick++.h>
-
-#ifdef GEN_EXIF
-#include <exiv2/exiv2.hpp>
-#endif
 
 #include "diptych.h"
 
@@ -73,7 +73,7 @@ int main(int argc, char* const argv[])
     std::list<unsigned short>  verts;
     unsigned  reqfiles = 1;
 
-    Magick::InitializeMagick("");
+    Magick::InitializeMagick(nullptr);
 
     int  c;
     while ( (c = getopt(argc, argv, "b:B:c:C:s:O:ho:q:vr:R:S:f:")) != EOF) {
@@ -176,7 +176,7 @@ int main(int argc, char* const argv[])
 		thegopts.scale.fptr = &Magick::Image::resize;
 		struct IMfltrs {
 		    const char*          name;
-		    Magick::FilterTypes  fltr;
+		    Magick::FilterType  fltr;
 		} imfltrs[] = 
 		{
 		    "Point", Magick::PointFilter,
@@ -242,9 +242,8 @@ int main(int argc, char* const argv[])
 usage:
 	    case 'h':
 	    default:
-	        std::cout << argv0 << "  version $Id: diptych.cc,v 1.8 2012/04/07 12:40:57 ray Exp $  (with"
-#ifdef GEN_EXIF
-#else
+	        std::cout << argv0 << " " << PACKAGE_VERSION << " (with"
+#ifndef HAVE_EXIV2
 		     << "out"
 #endif
 		     << " exif support)\n"

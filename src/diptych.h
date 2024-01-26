@@ -1,6 +1,10 @@
 #ifndef DIP_DIPTYCH_H
 #define DIP_DIPTYCH_H
 
+#ifdef HAVE_CONFIG
+#include <config.h>
+#endif
+
 #include <sys/types.h>
 #include <iostream>
 #include <Magick++.h>

@@ -20,7 +20,7 @@ struct _Gopts {
 
     struct {
 	void (Magick::Image::*fptr)(const Magick::Geometry&);
-	Magick::FilterTypes  filter;
+	Magick::FilterType  filter;
 	float  ratio;
     } scale;
 

@@ -11,7 +11,6 @@
 
 
 #include <Magick++.h>
-#include <exiv2/exiv2.hpp>
 
 
 #include "diptych.h"

@@ -1,5 +1,14 @@
 #include "Frame.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#ifdef HAVE_EXIV2
+#include <exiv2/exiv2.hpp>
+#endif
+
+
 #include <iomanip>
 
 namespace diptych
@@ -110,7 +119,7 @@ Magick::Image  ImgFrame::process(const unsigned  trgt_)
      */
     Magick::Image  img = _process(trgt_);
 
-#ifdef GEN_EXIF
+#ifdef HAVE_EXIV2
     if (exif())
     {
 	try
