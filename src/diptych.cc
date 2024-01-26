@@ -14,6 +14,7 @@
 #include <getopt.h>
 #include <libgen.h>
 
+#include <memory>
 #include <string>
 #include <stdexcept>
 #include <sstream>
@@ -287,7 +288,7 @@ usage:
     }
 
 
-    std::list<diptych::VImgFrame*>  verticals;
+    std::list<std::unique_ptr<diptych::VImgFrame>>  verticals;
     std::list<diptych::Padding>  paddings;
 
     /* this is the target height of the final HImgFrame, based on the smallest
@@ -295,40 +296,46 @@ usage:
      */
     unsigned  trgty = 0;
 
-    for (std::list<unsigned short>::iterator i = verts.begin(); i!=verts.end(); ++i)
+    try
     {
-	// internal (ie verticals) don't have an outter border
-	paddings.push_back(diptych::Padding(thegopts.border.width, 0));
-	verticals.push_back(new diptych::VImgFrame(paddings.back()));
+	std::for_each (verts.begin(), verts.end(), [&](const auto& i) {
+	    // internal (ie verticals) don't have an outter border
+	    paddings.push_back(diptych::Padding(thegopts.border.width, 0));
+	    verticals.push_back(std::make_unique<diptych::VImgFrame>(paddings.back()));
 
-	unsigned short  N = *i;
-	while (N-- > 0 && optind < argc)
-	{
-	    const char*  file = argv[optind++];
-
-	    if (access(file, R_OK) != 0) {
-		std::cerr << argv0 << ": " << file << " - " << strerror(errno) << std::endl;
-		return 1;
-	    }
-
-	    try
+	    unsigned short  N = i;
+	    while (N-- > 0 && optind < argc)
 	    {
-		verticals.back()->push_back(file);
-	    }
-	    catch (const std::exception& ex)
-	    {
-		std::cerr << argv0 << ": unable to read file for composing verticals: " << file << " - " << ex.what() << std::endl;
-		return 1;
-	    }
-	}
+		const char*  file = argv[optind++];
 
-	const unsigned  y = verticals.back()->ttly();
-	if (trgty == 0 || y < trgty) {
-	    DIPTYCH_DEBUG_LOG("re-eval for Y final target from=" << trgty << " to=" << y << "  based on " << verticals.back());
-	    // doing this can scale up imgs!!
-	    //trgty = y + (verticals.back()->size()-1) * thegopts.border.width;
-	    trgty = y;
-	}
+		if (access(file, R_OK) != 0) {
+		    std::cerr << argv0 << ": " << file << " - " << strerror(errno) << std::endl;
+		    throw std::runtime_error("EPERM");
+		}
+
+		try
+		{
+		    verticals.back()->push_back(file);
+		}
+		catch (const std::exception& ex)
+		{
+		    std::cerr << argv0 << ": unable to read file for composing verticals: " << file << " - " << ex.what() << std::endl;
+		    throw;
+		}
+	    }
+
+	    const unsigned  y = verticals.back()->ttly();
+	    if (trgty == 0 || y < trgty) {
+		DIPTYCH_DEBUG_LOG("re-eval for Y final target from=" << trgty << " to=" << y << "  based on " << verticals.back());
+		// doing this can scale up imgs!!
+		//trgty = y + (verticals.back()->size()-1) * thegopts.border.width;
+		trgty = y;
+	    }
+	});
+    }
+    catch (...)
+    {
+        return 1;
     }
 
     int  retcode = 0;
@@ -338,20 +345,19 @@ usage:
 	diptych::HImgFrame  horizontals(hpad);
 	DIPTYCH_DEBUG_LOG("hframe=" << &horizontals << " - generating verticals/scalings");
 
-	for (std::list<diptych::VImgFrame*>::iterator i=verticals.begin(); i!=verticals.end(); ++i)
-	{
+	std::for_each (verticals.begin(), verticals.end(), [&horizontals, &trgty, &argv0](auto& i) {
 	    try
 	    {
 		/* ensure that all vertical frames are the same (trgty) height
 		 */
-		horizontals.push_back( (*i)->process(trgty) );
+		horizontals.push_back( i->process(trgty) );
 	    }
 	    catch (const std::exception& ex)
 	    {
 		std::cerr << argv0 << ": failed to generate vertical component - " << ex.what() << std::endl;
 		throw;
 	    }
-	}
+	});
 	Magick::Image  final = horizontals.process(trgty);
 
 	if (thegopts.output.size) {
@@ -383,10 +389,7 @@ usage:
 	std::cerr << argv0 << ": failed to generate final image - " << ex.what() << std::endl;
 	retcode = 1;
     }
-
-    for (std::list<diptych::VImgFrame*>::iterator i=verticals.begin(); i!=verticals.end(); ++i) {
-	delete *i;
-    }
+    verticals.clear();
 
     Magick::TerminateMagick();
 
