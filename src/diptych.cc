@@ -15,6 +15,7 @@
 #include <libgen.h>
 
 #include <memory>
+#include <array>
 #include <string>
 #include <stdexcept>
 #include <sstream>
@@ -76,7 +77,7 @@ int main(int argc, char* const argv[])
     Magick::InitializeMagick(nullptr);
 
     int  c;
-    while ( (c = getopt(argc, argv, "b:B:c:C:s:O:ho:q:vr:R:S:f:")) != EOF) {
+    while ( (c = getopt(argc, argv, "b:B:c:C:s:O:ho:q:vr:R:S:f:x")) != EOF) {
 	switch (c)
 	{
 	    case 'b':
@@ -243,6 +244,11 @@ int main(int argc, char* const argv[])
 		thegopts.scale.ratio = atof(optarg);
 	    } break;
 
+	    case 'x':
+	    {
+	        thegopts.excludeMeta = true;
+	    } break;
+
 	    case 'v':
 	    {
 	        thegopts.verbose = true;
@@ -256,11 +262,12 @@ usage:
 		     << "out"
 #endif
 		     << " exif support)\n"
-		     << "usage:  " << argv0 << " [ -b <border width> -c <border colour> ] [ -B <external border width> -C <external border colour> ] [ -q <output quality%> ] [ -r <resolution> ] -s <components, ie 2:1> -o <output> [ -O <output geometry> ]  [-f <resize filter=lanczos|...]  <files>" << std::endl
+		     << "usage:  " << argv0 << " [ -b <border width> -c <border colour> ] [ -B <external border width> -C <external border colour> ] [ -q <output quality%> ] [ -r <resolution> ] -s <components, ie 2:1> -o <output> [ -O <output geometry> ]  [-f <resize filter=lanczos|...] [-x]  <files>" << std::endl
 		     << "        -B  = " << thegopts.frame.width << "pxls -C = " << thegopts.frame.colour << std::endl
 		     << "        -b  = " << thegopts.border.width << "pxls -c = " << thegopts.border.colour << std::endl
 		     << "        -q  = " << thegopts.output.quality << std::endl
-		     << "        -r  = " << thegopts.resolution << std::endl;
+		     << "        -r  = " << thegopts.resolution << std::endl
+		     << "        -x    exclude metadata (default=no)\n";
 
 		return 1;
 	}
@@ -376,6 +383,14 @@ usage:
 
 	try
 	{
+	    if (thegopts.excludeMeta) {
+		constexpr std::array  profileids {
+		     "EXIF", "ICM", "IPTC"
+		};
+		for (const auto& id : profileids) {
+		    final.profile(id, Magick::Blob());
+		}
+	    }
 	    final.write(thegopts.output.output);
 	}
 	catch (const std::exception& ex)

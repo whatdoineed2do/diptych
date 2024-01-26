@@ -10,7 +10,7 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 PKG_PROG_PKG_CONFIG
 
-AX_CXX_COMPILE_STDCXX([14], [noext], [mandatory])
+AX_CXX_COMPILE_STDCXX([17], [noext], [mandatory])
 
 PKG_CHECK_MODULES(IMAGEMAGICK, [Magick++ >= 6.9.11])
 PKG_CHECK_EXISTS([Magick++ < 7.0.0],

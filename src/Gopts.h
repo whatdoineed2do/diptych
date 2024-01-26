@@ -28,6 +28,7 @@ struct _Gopts {
 	float  ratio;
     } scale;
 
+    bool  excludeMeta;
     bool  verbose;
 
     _Gopts()
@@ -47,6 +48,7 @@ struct _Gopts {
 	scale.filter = Magick::UndefinedFilter;
 	scale.ratio =  1;
 
+	excludeMeta = false;
 	verbose = false;
     };
 };
