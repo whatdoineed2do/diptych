@@ -7,8 +7,8 @@ bin_PROGRAMS = diptych
 
 diptych_CPPFLAGS = 
 diptych_CXXFLAGS = $(AM_CXXFLAGS)
-#diptych_LDFLAGS = 
-#diptych_LDADD =
+diptych_LDFLAGS = 
+diptych_LDADD = $(AM_LDFLAGS)
 diptych_SOURCES = \
 	Frame.cc \
 	diptych.cc
