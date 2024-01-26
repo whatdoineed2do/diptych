@@ -1,5 +1,5 @@
-AC_PREREQ(2.64)
-AC_INIT([diptych], [x.x.x], [https://github.com/whatdoineed2do/diptych/issues], [https://github.com/whatdoineed2do/diptych], [whatdoineed2do@nospam-github.com])
+AC_PREREQ([2.69])
+AC_INIT([diptych],[0.4.0],[https://github.com/whatdoineed2do/diptych/issues],[https://github.com/whatdoineed2do/diptych],[whatdoineed2do@nospam-github.com])
 
 AM_INIT_AUTOMAKE([dist-bzip2 no-dist-gzip])
 AC_CONFIG_MACRO_DIRS([m4])
@@ -14,24 +14,33 @@ AC_HEADER_STDC
 AC_PROG_INSTALL
 PKG_PROG_PKG_CONFIG
 
-PKG_CHECK_MODULES(IMAGEMAGICK, [Magick++ >= 6.9.9])
-PKG_CHECK_MODULES(EXIV,        [exiv2 >= 0.25])
+AX_CXX_COMPILE_STDCXX([14], [noext], [mandatory])
 
-AC_ARG_ENABLE([debug-code],
-	[AS_HELP_STRING([--enable-debug],
-	[enable debug (default is no)])],
-	[no_debug=false],
-	[no_debug=true])
-if test "$no_debug" = true; then
-        building_debug=no
-        AC_DEFINE(NDEBUG,1,[debug code])
-else
-        building_debug=yes
-        AC_DEFINE(DEBUG,1,[debug code])
+PKG_CHECK_MODULES(IMAGEMAGICK, [Magick++ >= 7.1.0])
+
+AC_ARG_ENABLE(exiv2,
+        AS_HELP_STRING([--disable-exiv2],[do not generate Exif]),
+        [ use_exiv2="${enableval}" ], [ use_exiv2=yes ] )
+if test "x$use_exiv2" != xno ; then
+        PKG_CHECK_MODULES(EXIV2, [exiv2 >= 0.25], [ use_exiv2=yes ], [ use_exiv2=no ])
+        AH_TEMPLATE([HAVE_EXIV2], [generate Exif where available])
+        AS_IF([test "x$use_exiv2" = "xyes"], [
+                AC_DEFINE([HAVE_EXIV2])
+                AC_SUBST(EXIV2_CFLAGS)
+                AC_SUBST(EXIV2_LIBS)
+           ])
 fi
 
 
-AC_OUTPUT([
+AC_ARG_ENABLE(debug,
+        AS_HELP_STRING([--enable-debug],[enable debug code (default is no)]),
+        [ debug="${enableval}" ], [ debug=no ] )
+if test "x$debug" = xno; then
+        AC_DEFINE(NDEBUG,1,[debug code])
+fi
+
+AC_CONFIG_FILES([
 Makefile
 src/Makefile
 ])
+AC_OUTPUT
