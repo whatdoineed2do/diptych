@@ -1,6 +1,7 @@
 #ifndef DIP_GOPTS_H
 #define DIP_GOPTS_H
 
+#include <functional>
 #include <Magick++.h>
 
 
@@ -19,7 +20,7 @@ struct _Gopts {
     const char*  resolution;
 
     struct {
-	void (Magick::Image::*fptr)(const Magick::Geometry&);
+	std::function< void (Magick::Image&, const Magick::Geometry&)>  scaler;
 #ifdef HAVE_IM_RESIZE_FILTERTYPES
 	Magick::FilterTypes  filter;
 #else
@@ -44,7 +45,7 @@ struct _Gopts {
 
 	resolution = "300x300";
 	
-	scale.fptr = &Magick::Image::resize;
+	scale.scaler = &Magick::Image::resize;
 	scale.filter = Magick::UndefinedFilter;
 	scale.ratio =  1;
 

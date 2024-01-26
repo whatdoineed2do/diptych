@@ -22,7 +22,7 @@ std::ostream&  operator<<(std::ostream& os_, const Magick::Geometry& obj_)
 
 namespace diptych
 {
-void DIPTYCH_SCALE(Magick::Image& img_, const Magick::Geometry& g_, const float ratio_);
+void scale(Magick::Image& img_, const Magick::Geometry& g_, const float ratio_);
 
 inline
 bool  operator==(const Magick::Geometry& lhs_, const Magick::Geometry& rhs_)

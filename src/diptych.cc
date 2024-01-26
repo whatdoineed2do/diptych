@@ -31,7 +31,7 @@
 
 namespace diptych
 {
-void DIPTYCH_SCALE(Magick::Image& img_, const Magick::Geometry& g_, const float ratio_)
+void  scale(Magick::Image& img_, const Magick::Geometry& g_, const float ratio_)
 {
     if (thegopts.scale.filter != Magick::UndefinedFilter) {
 	img_.filterType(thegopts.scale.filter);
@@ -39,7 +39,7 @@ void DIPTYCH_SCALE(Magick::Image& img_, const Magick::Geometry& g_, const float 
 
     if (ratio_ <= 1) {
 	DIPTYCH_DEBUG_LOG(&img_ << "  scaling: direct to=" << g_.height() << "x" << g_.width());
-	(img_.*thegopts.scale.fptr)(g_);
+	thegopts.scale.scaler(img_, g_);
 	return;
     }
 
@@ -58,7 +58,7 @@ void DIPTYCH_SCALE(Magick::Image& img_, const Magick::Geometry& g_, const float 
 	    g = g_;
 	    DIPTYCH_DEBUG_LOG(&img_ << "  scaling: " << g.height() << "x" << g.width() << " - final");
 	}
-	(img_.*thegopts.scale.fptr)(g);
+	thegopts.scale.scaler(img_, g_);
 	//img_.resize(g);
     }
 }
@@ -167,14 +167,14 @@ int main(int argc, char* const argv[])
 
 	    case 'R':
 	    {
-		thegopts.scale.fptr = *optarg == 'p' ? 
+		thegopts.scale.scaler = *optarg == 'p' ?
 			&Magick::Image::sample :
 			&Magick::Image::scale;
 	    } break;
 
 	    case 'f':
 	    {
-		thegopts.scale.fptr = &Magick::Image::resize;
+		thegopts.scale.scaler = &Magick::Image::resize;
 		struct IMfltrs {
 		    const char*          name;
 #ifdef HAVE_IM_RESIZE_FILTERTYPES
@@ -376,7 +376,7 @@ usage:
 	    const Magick::Geometry  b = thegopts.output.size;
 
 	    const diptych::ImgFrame::Exif  e(final);
-	    diptych::DIPTYCH_SCALE(final, b, thegopts.scale.ratio);
+	    diptych::scale(final, b, thegopts.scale.ratio);
 	    e.copy(final);
 	}
 	final.quality(thegopts.output.quality);

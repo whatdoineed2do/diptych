@@ -300,7 +300,7 @@ Magick::Image  VImgFrame::_process(const unsigned  trgt_)
 
 	DIPTYCH_DEBUG_LOG("VF=" << this << " " << j << '/' << _imgs.size() << " scale from=" << img.columns() << "x" << img.rows() << " trgt y=" << trgt << "  remain y=" << remain << "/" << trgt_);
 
-	DIPTYCH_SCALE(img, Magick::Geometry(0, trgt), thegopts.scale.ratio);
+	diptych::scale(img, Magick::Geometry(0, trgt), thegopts.scale.ratio);
 
 	DIPTYCH_DEBUG_LOG("VF=" << this << " " << j << '/' << _imgs.size() << "         to=" << img.columns() << "x" << img.rows() << "  exif=" << ImgFrame::Exif(img));
 	imgs.push_back(img);
