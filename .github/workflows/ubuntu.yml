@@ -1,0 +1,45 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -yq \
+        build-essential git autotools-dev autoconf autoconf-archive libtool \
+        libmagick++-dev \
+        libexiv2-dev
+
+    - name: Build all
+      run: |
+        autoreconf --install
+        autoconf
+        ./configure
+        make
+
+    - name: Build without exiv2
+      run: |
+        autoreconf --install
+        autoconf
+        ./configure --disable-exiv2
+        make clean
+        make
+
+    - name: Build with debug
+      run: |
+        autoreconf --install
+        autoconf
+        git checkout src/Makefile.am
+        ./configure --enable-debug
+        make clean
+        make
+
