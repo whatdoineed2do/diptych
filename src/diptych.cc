@@ -22,7 +22,6 @@
 #include <cassert>
 #include <list>
 
-using namespace  std;
 
 #include <Magick++.h>
 
@@ -157,7 +156,7 @@ int main(int argc, char* const argv[])
 	    {
 		try {
 		    const Magick::Geometry  g(optarg);
-		    static string  s = g;
+		    static const std::string  s = g;
 		    thegopts.output.size = s.c_str();
 		}
 		catch (...)
