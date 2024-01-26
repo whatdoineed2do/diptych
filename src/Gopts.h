@@ -20,7 +20,11 @@ struct _Gopts {
 
     struct {
 	void (Magick::Image::*fptr)(const Magick::Geometry&);
+#ifdef HAVE_IM_RESIZE_FILTERTYPES
+	Magick::FilterTypes  filter;
+#else
 	Magick::FilterType  filter;
+#endif
 	float  ratio;
     } scale;
 

@@ -16,7 +16,11 @@ PKG_PROG_PKG_CONFIG
 
 AX_CXX_COMPILE_STDCXX([14], [noext], [mandatory])
 
-PKG_CHECK_MODULES(IMAGEMAGICK, [Magick++ >= 7.1.0])
+PKG_CHECK_MODULES(IMAGEMAGICK, [Magick++ >= 6.9.11])
+PKG_CHECK_EXISTS([Magick++ < 7.0.0],
+                 [AC_DEFINE([HAVE_IM_RESIZE_FILTERTYPES], 1,
+                            [Defined if IM resize filter enum type change])])
+
 
 AC_ARG_ENABLE(exiv2,
         AS_HELP_STRING([--disable-exiv2],[do not generate Exif]),

@@ -176,7 +176,11 @@ int main(int argc, char* const argv[])
 		thegopts.scale.fptr = &Magick::Image::resize;
 		struct IMfltrs {
 		    const char*          name;
+#ifdef HAVE_IM_RESIZE_FILTERTYPES
+		    Magick::FilterTypes  fltr;
+#else
 		    Magick::FilterType  fltr;
+#endif
 		} imfltrs[] = 
 		{
 		    "Point", Magick::PointFilter,
