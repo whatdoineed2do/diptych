@@ -330,7 +330,7 @@ usage:
 
 	    const unsigned  y = verticals.back()->ttly();
 	    if (trgty == 0 || y < trgty) {
-		DIPTYCH_DEBUG_LOG("re-eval for Y final target from=" << trgty << " to=" << y << "  based on " << verticals.back());
+		DIPTYCH_DEBUG_LOG("re-eval for Y final target from=" << trgty << " to=" << y << "  based on " << verticals.back().get() << " " << *verticals.back().get());
 		// doing this can scale up imgs!!
 		//trgty = y + (verticals.back()->size()-1) * thegopts.border.width;
 		trgty = y;

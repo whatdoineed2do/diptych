@@ -28,6 +28,11 @@ std::ostream&  operator<<(std::ostream& os_, const ImgFrame::Exif& obj_)
     return os_ << "make=" << obj_.make << " model=" << obj_.model << " date=" << obj_.dateorig << " focallen=" << obj_.focallen << " max f/=" << obj_.maxaperture;
 }
 
+std::ostream&  operator<<(std::ostream& os_, const ImgFrame& obj_)
+{
+    return os_ << "[" << obj_.size() << "] {back rows="  << obj_.back().rows() << " cols=" << obj_.back().cols() << "}";
+}
+
 
 
 ImgFrame::Exif::Exif(const Magick::Image& img_)

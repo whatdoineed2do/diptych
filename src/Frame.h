@@ -160,6 +160,7 @@ class ImgFrame : public Frame
 };
 
 std::ostream&  operator<<(std::ostream& os_, const ImgFrame::Exif& obj_);
+std::ostream&  operator<<(std::ostream& os_, const ImgFrame& obj_);
 
 
 
