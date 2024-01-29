@@ -10,6 +10,7 @@ diptych_CXXFLAGS = $(AM_CXXFLAGS)
 diptych_LDFLAGS = 
 diptych_LDADD = $(AM_LDFLAGS)
 diptych_SOURCES = \
+	Exif.cc \
 	Frame.cc \
 	diptych.cc
 

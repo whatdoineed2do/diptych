@@ -28,6 +28,7 @@
 #include <Magick++.h>
 
 #include "diptych.h"
+#include "Exif.h"
 
 namespace diptych
 {
@@ -375,7 +376,7 @@ usage:
 	    const Magick::Geometry  a = final.size();
 	    const Magick::Geometry  b = thegopts.output.size;
 
-	    const diptych::ImgFrame::Exif  e(final);
+	    const diptych::Exif  e(final);
 	    diptych::scale(final, b, thegopts.scale.ratio);
 	    e.copy(final);
 	}

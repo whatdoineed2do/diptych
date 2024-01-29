@@ -4,115 +4,22 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_EXIV2
-#include <exiv2/exiv2.hpp>
-#endif
-
-
 #include <iomanip>
+#include "Exif.h"
 
 namespace diptych
 {
-
-const std::string  ImgFrame::Exif::TAG_make      = "exif:Make";
-const std::string  ImgFrame::Exif::TAG_model     = "exif:Model";
-const std::string  ImgFrame::Exif::TAG_dateorig  = "exif:DateTimeOriginal";
-const std::string  ImgFrame::Exif::TAG_artist    = "exif:Artist";
-const std::string  ImgFrame::Exif::TAG_copyright = "exif:Copyright";
-const std::string  ImgFrame::Exif::TAG_maxaperture = "exif:MaxApertureValue";
-const std::string  ImgFrame::Exif::TAG_focallen  = "exif:FocalLength";
-
-
-std::ostream&  operator<<(std::ostream& os_, const ImgFrame::Exif& obj_)
-{
-    return os_ << "make=" << obj_.make << " model=" << obj_.model << " date=" << obj_.dateorig << " focallen=" << obj_.focallen << " max f/=" << obj_.maxaperture;
-}
 
 std::ostream&  operator<<(std::ostream& os_, const ImgFrame& obj_)
 {
     return os_ << "[" << obj_.size() << "] {back rows="  << obj_.back().rows() << " cols=" << obj_.back().cols() << "}";
 }
 
-
-
-ImgFrame::Exif::Exif(const Magick::Image& img_)
-{
-    Magick::Image& img = (Magick::Image&)img_;
-    make     = img.attribute(TAG_make);
-    model    = img.attribute(TAG_model);
-
-    dateorig = img.attribute(TAG_dateorig);
-    artist    = img.attribute(TAG_artist);
-    copyright = img.attribute(TAG_copyright);
-    maxaperture = img.attribute(TAG_maxaperture);
-    focallen  = img.attribute(TAG_focallen);
+const Exif&  ImgFrame::exif() const
+{ 
+    static Exif  tmp;
+    return _exif ? *_exif : tmp;
 }
-
-ImgFrame::Exif::Exif(const Exif& rhs_) : make(rhs_.make), model(rhs_.model), dateorig(rhs_.dateorig), artist(rhs_.artist), copyright(rhs_.copyright), maxaperture(rhs_.maxaperture), focallen(rhs_.focallen)
-{ }
-
-const ImgFrame::Exif& ImgFrame::Exif::operator=(const Exif& rhs_)
-{
-    if (&rhs_ != this) {
-	make      = rhs_.make;
-	model     = rhs_.model;
-	dateorig  = rhs_.dateorig;
-	artist    = rhs_.artist;
-	copyright = rhs_.copyright;
-	maxaperture = rhs_.maxaperture;
-	focallen  = rhs_.focallen;
-    }
-    return *this;
-}
-
-const bool ImgFrame::Exif::operator==(const Exif& rhs_) const
-{
-    if (&rhs_ == this) {
-	return true;
-    }
-
-    std::string  a = dateorig;
-    std::string  b = rhs_.dateorig;
-    std::string::size_type  p = a.find(" ");
-    if (p != std::string::npos) {
-	a.erase(p);
-    }
-    p = b.find(" ");
-    if (p != std::string::npos) {
-	b.erase(p);
-    }
-
-    return make == rhs_.make && model == rhs_.model && a == b;
-}
-
-void  ImgFrame::Exif::copy(Magick::Image& img_) const
-{
-    if (!make.empty())         img_.attribute(TAG_make,        make);
-    if (!model.empty())        img_.attribute(TAG_model,       model);
-    if (!dateorig.empty())     img_.attribute(TAG_dateorig,    dateorig);
-    if (!artist.empty())       img_.attribute(TAG_artist,      artist);
-    if (!copyright.empty())    img_.attribute(TAG_copyright,   copyright);
-    if (!maxaperture.empty())  img_.attribute(TAG_maxaperture, maxaperture);
-    if (!focallen.empty())     img_.attribute(TAG_focallen,    focallen);
-}
-
-
-bool  ImgFrame::Exif::clean(const Exif& rhs_)
-{
-    if (make != rhs_.make) {
-	return false;
-    }
-
-    if (model       != rhs_.model)        model.clear();
-    if (dateorig    != rhs_.dateorig)     dateorig.clear();
-    if (artist      != rhs_.artist)       artist.clear();
-    if (copyright   != rhs_.copyright)    copyright.clear();
-    if (maxaperture != rhs_.maxaperture)  maxaperture.clear();
-    if (focallen    != rhs_.focallen)     focallen.clear();
-
-    return true;
-}
-
 
 Magick::Image  ImgFrame::process(const unsigned  trgt_)
 {
@@ -154,7 +61,7 @@ Magick::Image  ImgFrame::process(const unsigned  trgt_)
 	    img.exifProfile(Magick::Blob(ebuf, 6+evraw.size()));
 	    delete [] ebuf;
 
-	    DIPTYCH_VERBOSE_LOG("encoded exif=" << ImgFrame::Exif(img));
+	    DIPTYCH_VERBOSE_LOG("encoded exif=" << diptych::Exif(img));
 	}
 	catch (const std::exception& ex)
 	{
@@ -219,9 +126,9 @@ bool  ImgFrame::_cmpExif(const Magick::Image& img_)
 {
     bool  b = false;
 
-    const ImgFrame::Exif  e(img_);
+    const diptych::Exif  e(img_);
     if (_exif == NULL) {
-	_exif = new ImgFrame::Exif(e);
+	_exif = new diptych::Exif(e);
     }
     else
     {
@@ -325,7 +232,7 @@ Magick::Image  VImgFrame::_process(const unsigned  trgt_)
     {
 	dest.composite(img, 0, y);
 
-	DIPTYCH_VERBOSE_LOG("  y=" << std::setw(5) << y << " input cols=" << img.columns() << " rows=" << img.rows() << "  (" << img.fileName() << ")  { " << ImgFrame::Exif(img) << " }");
+	DIPTYCH_VERBOSE_LOG("  y=" << std::setw(5) << y << " input cols=" << img.columns() << " rows=" << img.rows() << "  (" << img.fileName() << ")  { " << diptych::Exif(img) << " }");
 
 	DIPTYCH_DEBUG_LOG("VF=" << this << " stacking y pos=" << y << " img rows=" << img.rows());
 

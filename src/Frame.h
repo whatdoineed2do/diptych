@@ -19,6 +19,8 @@
 
 namespace diptych  {
 
+class Exif;
+
 class Frame
 {
   public:
@@ -71,49 +73,6 @@ class ImgFrame : public Frame
     typedef std::list<_ImgFrame*>  Imgs;
     typedef std::list<Magick::Image>  _MImgs;
 
-    struct Exif
-    {
-	static const std::string  TAG_make;
-	static const std::string  TAG_model;
-	static const std::string  TAG_dateorig;
-	static const std::string  TAG_artist;
-	static const std::string  TAG_copyright;
-	static const std::string  TAG_maxaperture;
-	static const std::string  TAG_focallen;
-
-	Exif() { }
-
-	Exif(const Magick::Image& img_);
-
-	Exif(const Exif& rhs_);
-
-	const Exif& operator=(const Exif& rhs_);
-
-	const bool operator==(const Exif& rhs_) const;
-
-	const bool operator!=(const Exif& rhs_) const
-	{ return !operator==(rhs_); }
-
-	operator bool() const 
-	{ return make.empty() ? false : true; }
-
-
-	void  copy(Magick::Image& img_) const;
-
-
-	bool  clean(const Exif& rhs_);
-
-
-	std::string  make;
-	std::string  model;
-	std::string  dateorig;
-
-	std::string  artist;
-	std::string  copyright;
-	std::string  maxaperture;
-	std::string  focallen;
-    };
-
     virtual ~ImgFrame();
 
     virtual void  push_back(Magick::Image img_);
@@ -126,11 +85,7 @@ class ImgFrame : public Frame
 
     /* consolidated exif across all the push_back'd img frames
      */
-    const ImgFrame::Exif&  exif() const
-    { 
-	static ImgFrame::Exif  tmp;
-	return _exif ? *_exif : tmp;
-    }
+    const Exif&  exif() const;
 
     const unsigned  size() const
     { return _imgs.size(); }
@@ -140,7 +95,7 @@ class ImgFrame : public Frame
   protected:
     ImgFrame(Padding&  padding_) : _exif(NULL), _ttlx(0), _ttly(0), _padding(padding_), _smallest(NULL) { }
 
-    ImgFrame::Exif*  _exif;
+    Exif*  _exif;
 
     ImgFrame::Imgs  _imgs;
 
@@ -159,7 +114,6 @@ class ImgFrame : public Frame
     void  _tracksmallest(const _ImgFrame& img_);
 };
 
-std::ostream&  operator<<(std::ostream& os_, const ImgFrame::Exif& obj_);
 std::ostream&  operator<<(std::ostream& os_, const ImgFrame& obj_);
 
 
