@@ -31,44 +31,9 @@ Magick::Image  ImgFrame::process(const unsigned  trgt_)
      */
     Magick::Image  img = _process(trgt_);
 
-#ifdef HAVE_EXIV2
-    if (exif())
-    {
-	try
-	{
-	    // and attach the exif
-	    Exiv2::Blob      evraw;
-	    Exiv2::ExifData  evexif;
-
-	    evexif["Exif.Image.Make"]     = exif().make;
-	    evexif["Exif.Image.Model"]    = exif().model;
-	    evexif["Exif.Photo.DateTimeOriginal"] = exif().dateorig;
-	    evexif["Exif.Image.Artist"]   = exif().artist;
-	    evexif["Exif.Image.Copyright"] = exif().copyright;
-	    evexif["Exif.Photo.MaxApertureValue"] = exif().maxaperture;
-	    evexif["Exif.Photo.FocalLength"] = exif().focallen;
-
-	    Exiv2::ExifParser::encode(evraw, Exiv2::littleEndian, evexif);
-	    unsigned char*  ebuf = new unsigned char[6+evraw.size()];
-	    ebuf[0] = 'E';
-	    ebuf[1] = 'x';
-	    ebuf[2] = 'i';
-	    ebuf[3] = 'f';
-	    ebuf[4] = 0;
-	    ebuf[5] = 0;
-	    memcpy(ebuf+6, &evraw[0], evraw.size());
-
-	    img.exifProfile(Magick::Blob(ebuf, 6+evraw.size()));
-	    delete [] ebuf;
-
-	    DIPTYCH_VERBOSE_LOG("encoded exif=" << diptych::Exif(img));
-	}
-	catch (const std::exception& ex)
-	{
-	    std::cerr << "failed to attached generated exif - " << ex.what() << std::endl;
-	}
+    if (exif()) {
+        _exif->assign(img);
     }
-#endif
     return img;
 }
 ImgFrame::~ImgFrame()

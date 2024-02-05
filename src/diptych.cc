@@ -376,7 +376,7 @@ usage:
 	    const Magick::Geometry  a = final.size();
 	    const Magick::Geometry  b = thegopts.output.size;
 
-	    const diptych::Exif  e(final);
+	    diptych::Exif  e(final);
 	    diptych::scale(final, b, thegopts.scale.ratio);
 	    e.copy(final);
 	}
@@ -392,6 +392,7 @@ usage:
 		    final.profile(id, Magick::Blob());
 		}
 	    }
+	    final.magick("JPEG");
 	    final.write(thegopts.output.output);
 	}
 	catch (const std::exception& ex)

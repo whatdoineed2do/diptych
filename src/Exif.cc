@@ -21,18 +21,20 @@ std::ostream&  operator<<(std::ostream& os_, const Exif& obj_)
 
 Exif::Exif(const Magick::Image& img_)
 {
-    Magick::Image& img = (Magick::Image&)img_;
-    make     = img.attribute(TAG_make);
-    model    = img.attribute(TAG_model);
+    make     = img_.attribute(TAG_make);
+    model    = img_.attribute(TAG_model);
 
-    dateorig = img.attribute(TAG_dateorig);
-    artist    = img.attribute(TAG_artist);
-    copyright = img.attribute(TAG_copyright);
-    maxaperture = img.attribute(TAG_maxaperture);
-    focallen  = img.attribute(TAG_focallen);
+    dateorig = img_.attribute(TAG_dateorig);
+    artist    = img_.attribute(TAG_artist);
+    copyright = img_.attribute(TAG_copyright);
+    maxaperture = img_.attribute(TAG_maxaperture);
+    focallen  = img_.attribute(TAG_focallen);
+
+    _copyExif(img_);
 }
 
-Exif::Exif(const Exif& rhs_) : make(rhs_.make), model(rhs_.model), dateorig(rhs_.dateorig), artist(rhs_.artist), copyright(rhs_.copyright), maxaperture(rhs_.maxaperture), focallen(rhs_.focallen)
+Exif::Exif(const Exif& rhs_)
+    : make(rhs_.make), model(rhs_.model), dateorig(rhs_.dateorig), artist(rhs_.artist), copyright(rhs_.copyright), maxaperture(rhs_.maxaperture), focallen(rhs_.focallen), exif(rhs_.exif)
 { }
 
 const Exif& Exif::operator=(const Exif& rhs_)
@@ -45,6 +47,8 @@ const Exif& Exif::operator=(const Exif& rhs_)
 	copyright = rhs_.copyright;
 	maxaperture = rhs_.maxaperture;
 	focallen  = rhs_.focallen;
+
+	exif = rhs_.exif;
     }
     return *this;
 }
@@ -69,7 +73,19 @@ const bool Exif::operator==(const Exif& rhs_) const
     return make == rhs_.make && model == rhs_.model && a == b;
 }
 
-void  Exif::copy(Magick::Image& img_) const
+void  Exif::_copyExif(const Magick::Image& img_)
+{
+#ifdef HAVE_EXIV2
+    Magick::Blob  raw;
+    ((Magick::Image&)img_).write(&raw);
+
+    auto  exiv = Exiv2::ImageFactory::open((const Exiv2::byte*)raw.data(), raw.length());
+    exiv->readMetadata();
+    exif = exiv->exifData();
+#endif
+}
+
+void  Exif::copy(Magick::Image& img_)
 {
     if (!make.empty())         img_.attribute(TAG_make,        make);
     if (!model.empty())        img_.attribute(TAG_model,       model);
@@ -78,6 +94,39 @@ void  Exif::copy(Magick::Image& img_) const
     if (!copyright.empty())    img_.attribute(TAG_copyright,   copyright);
     if (!maxaperture.empty())  img_.attribute(TAG_maxaperture, maxaperture);
     if (!focallen.empty())     img_.attribute(TAG_focallen,    focallen);
+
+    assign(img_);
+}
+
+void  Exif::assign(Magick::Image& img_) 
+{
+#ifdef HAVE_EXIV2
+    unsigned char*  ebuf = nullptr;
+    try
+    {
+	// and attach the exif
+	Exiv2::Blob  evraw;
+	Exiv2::ExifParser::encode(evraw, Exiv2::littleEndian, (Exiv2::ExifData&)exif);
+	ebuf = new unsigned char[6+evraw.size()];
+
+	ebuf[0] = 'E';
+	ebuf[1] = 'x';
+	ebuf[2] = 'i';
+	ebuf[3] = 'f';
+	ebuf[4] = 0;
+	ebuf[5] = 0;
+	memcpy(ebuf+6, &evraw[0], evraw.size());
+
+	img_.exifProfile(Magick::Blob(ebuf, 6+evraw.size()));
+
+	DIPTYCH_VERBOSE_LOG("encoded exif=" << diptych::Exif(img_));
+    }
+    catch (const std::exception& ex)
+    {
+	std::cerr << "failed to attached generated exif - " << ex.what() << std::endl;
+    }
+    delete []  ebuf;
+#endif
 }
 
 

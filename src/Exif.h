@@ -43,7 +43,9 @@ class Exif
     operator bool() const 
     { return make.empty() ? false : true; }
 
-    void  copy(Magick::Image& img_) const;
+    void  copy(Magick::Image& img_);
+    void  assign(Magick::Image& img_);
+
 
     bool  clean(const Exif& rhs_);
 
@@ -59,9 +61,12 @@ class Exif
 
 #ifdef HAVE_EXIV2
     Exiv2::ExifData  exif;
+#else
+    void  exif;
 #endif
 
   private:
+    void  _copyExif(const Magick::Image&);
 };
 
 std::ostream&  operator<<(std::ostream& os_, const Exif& obj_);
