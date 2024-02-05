@@ -1,6 +1,19 @@
 #include "Exif.h"
 #include "log.h"
 
+#include <algorithm>
+
+
+#ifdef HAVE_EXIV2
+namespace Exiv2 {
+bool operator<(const Exiv2::Exifdatum& l_, const Exiv2::Exifdatum& r_)
+{
+    return l_.key() < r_.key() || ((l_.key() == r_.key() && l_.toString() < r_.toString()) );
+}
+}
+#endif
+
+
 namespace diptych
 {
 
@@ -73,6 +86,12 @@ const bool Exif::operator==(const Exif& rhs_) const
     return make == rhs_.make && model == rhs_.model && a == b;
 }
 
+Exif&  Exif::operator=(Magick::Image& img_)
+{
+    _copyExif(img_);
+    return *this;
+}
+
 void  Exif::_copyExif(const Magick::Image& img_)
 {
 #ifdef HAVE_EXIV2
@@ -126,6 +145,32 @@ void  Exif::assign(Magick::Image& img_)
 	std::cerr << "failed to attached generated exif - " << ex.what() << std::endl;
     }
     delete []  ebuf;
+#endif
+}
+
+void  Exif::merge(const Exif& rhs_)
+{
+#ifdef HAVE_EXIV2
+    try
+    {
+	if (meta.empty()) {
+	    std::copy(exif.begin(), exif.end(), std::back_inserter(meta));
+	    meta.sort();
+	}
+
+	auto  e = rhs_.exif;
+	e.sortByKey();
+
+	Exiv2::ExifMetadata  out;
+	std::set_intersection(meta.begin(), meta.end(), e.begin(), e.end(),
+			      std::back_inserter(out));
+
+	meta = std::ref(out);
+	meta.sort();
+    }
+    catch (const std::exception& e)
+    {
+    }
 #endif
 }
 

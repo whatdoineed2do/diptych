@@ -149,11 +149,16 @@ Magick::Image  VImgFrame::_process(const unsigned  trgt_)
     DIPTYCH_DEBUG_LOG("VF=" << this << " : target=" << trgt_ << " padding=" << _padding.intnl << " imgs=" << _imgs.size() << " ttl pad=" << ttlpad << " adjust=" << adjust << " scale ratio=" << sr);
 
     const double  smallestx = _smallest->cols();
-    bool  skip = false;
+    diptych::Exif  exif;
+    diptych::Exif*  ep = nullptr;
+
     unsigned  j = 0;
     for (auto&  i : _imgs)
     {
 	Magick::Image&  img = i->_read();
+	if (!ep) {
+	    exif = img;
+	}
 
 	unsigned  trgt = 0;
 	if (++j == _imgs.size())
@@ -177,11 +182,8 @@ Magick::Image  VImgFrame::_process(const unsigned  trgt_)
 	DIPTYCH_DEBUG_LOG("VF=" << this << " " << j << '/' << _imgs.size() << "         to=" << img.columns() << "x" << img.rows() << "  exif=" << ImgFrame::Exif(img));
 	imgs.push_back(img);
 
-
-	if (skip) {
-	    continue;
-	}
-	skip = _cmpExif(img);
+	exif.merge(img);
+	ep = &exif;
     }
 
     /* never has border but internal padding
@@ -204,6 +206,9 @@ Magick::Image  VImgFrame::_process(const unsigned  trgt_)
 	y += img.rows() + _padding.intnl;
     }
 
+    // replace the common exiv metadata to the final image
+    exif.copy(dest);
+
     return dest;
 }
 
@@ -211,16 +216,21 @@ Magick::Image  HImgFrame::_process(const unsigned  trgt_)
 {
     ImgFrame::_MImgs  imgs;
 
-    bool  skip = false;
+    diptych::Exif  exif;
+    diptych::Exif*  ep = nullptr;
+
     for (auto& i : _imgs)
     {
 	Magick::Image&  img = i->_read();
 	imgs.push_back(img);
 
-	if (skip) {
-	    continue;
+	if (!ep) {
+	    exif = img;
 	}
-	skip = _cmpExif(img);
+	else {
+	    exif.merge(img);
+	    ep = &exif;
+	}
     }
 
 
@@ -259,6 +269,8 @@ Magick::Image  HImgFrame::_process(const unsigned  trgt_)
 	DIPTYCH_VERBOSE_LOG("  x=" << std::setw(5) << x << " input cols=" << img.columns() << " rows=" << img.rows());
 	x += img.columns() + _padding.intnl;
     }
+
+    exif.copy(dest);
 
     return dest;
 }

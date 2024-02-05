@@ -35,6 +35,8 @@ class Exif
     Exif(const Exif& rhs_);
 
     const Exif& operator=(const Exif& rhs_);
+    Exif& operator=(Magick::Image& img_);
+
     const bool operator==(const Exif& rhs_) const;
 
     const bool operator!=(const Exif& rhs_) const
@@ -45,6 +47,9 @@ class Exif
 
     void  copy(Magick::Image& img_);
     void  assign(Magick::Image& img_);
+
+    // merge common exif
+    void  merge(const Exif&);
 
 
     bool  clean(const Exif& rhs_);
@@ -61,6 +66,8 @@ class Exif
 
 #ifdef HAVE_EXIV2
     Exiv2::ExifData  exif;
+
+    Exiv2::ExifMetadata  meta;  // sorted and merged
 #else
     void  exif;
 #endif
