@@ -31,7 +31,7 @@ class Exif
     Exif() = default;
     ~Exif() = default;
 
-    Exif(const Magick::Image& img_);
+    Exif(Magick::Image& img_);
     Exif(const Exif& rhs_);
 
     const Exif& operator=(const Exif& rhs_);
@@ -73,7 +73,7 @@ class Exif
 #endif
 
   private:
-    void  _copyExif(const Magick::Image&);
+    void  _copyExif(Magick::Image&);
 };
 
 std::ostream&  operator<<(std::ostream& os_, const Exif& obj_);

@@ -32,7 +32,7 @@ std::ostream&  operator<<(std::ostream& os_, const Exif& obj_)
 }
 
 
-Exif::Exif(const Magick::Image& img_)
+Exif::Exif(Magick::Image& img_)
 {
     make     = img_.attribute(TAG_make);
     model    = img_.attribute(TAG_model);
@@ -92,15 +92,25 @@ Exif&  Exif::operator=(Magick::Image& img_)
     return *this;
 }
 
-void  Exif::_copyExif(const Magick::Image& img_)
+void  Exif::_copyExif(Magick::Image& img_)
 {
 #ifdef HAVE_EXIV2
-    Magick::Blob  raw;
-    ((Magick::Image&)img_).write(&raw);
+    try
+    {
+	Magick::Blob  raw;
+	img_.write(&raw);
+	const Magick::Blob  orig(raw.data(), raw.length());
 
-    auto  exiv = Exiv2::ImageFactory::open((const Exiv2::byte*)raw.data(), raw.length());
-    exiv->readMetadata();
-    exif = exiv->exifData();
+	const auto  exiv = Exiv2::ImageFactory::open((const Exiv2::byte*)raw.data(), raw.length());
+	exiv->readMetadata();
+	exif = exiv->exifData();
+
+	img_.read(orig);
+    }
+    catch (const std::exception& ex)
+    {
+	DIPTYCH_VERBOSE_LOG("failed to copy exif on " << img_.fileName() << " - " << ex.what());
+    }
 #endif
 }
 

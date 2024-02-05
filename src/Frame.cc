@@ -87,33 +87,6 @@ const unsigned  ImgFrame::ttly()
     return _ttly;
 }
 
-bool  ImgFrame::_cmpExif(const Magick::Image& img_)
-{
-    bool  b = false;
-
-    const diptych::Exif  e(img_);
-    if (_exif == NULL) {
-	_exif = new diptych::Exif(e);
-    }
-    else
-    {
-	if (*_exif == e) {
-	}
-	else
-	{
-	    DIPTYCH_DEBUG_LOG("   " << this << " exif mismatch - cleaning: orig=" << *_exif << "new=" << e);
-
-	    if (_exif->clean(e)) {
-	    }
-	    else {
-		b = true;
-		delete _exif;
-		_exif = NULL;
-	    }
-	}
-    }
-    return b;
-}
 
 void  ImgFrame::_tracksmallest(const _ImgFrame& img_)
 {
@@ -191,6 +164,7 @@ Magick::Image  VImgFrame::_process(const unsigned  trgt_)
      */
 
     Magick::Image  dest(Magick::Geometry(imgs.front().columns(), trgt_), thegopts.border.colour);
+    dest.magick("RGB");
 
     DIPTYCH_VERBOSE_LOG("vert frame dest cols=" << dest.columns() << " rows=" << dest.rows() << " seperator=" << _padding.intnl << " colour=" << thegopts.border.colour);
 
@@ -199,7 +173,7 @@ Magick::Image  VImgFrame::_process(const unsigned  trgt_)
     {
 	dest.composite(img, 0, y);
 
-	DIPTYCH_VERBOSE_LOG("  y=" << std::setw(5) << y << " input cols=" << img.columns() << " rows=" << img.rows() << "  (" << img.fileName() << ")  { " << diptych::Exif(img) << " }");
+	DIPTYCH_VERBOSE_LOG("  y=" << std::setw(5) << y << " input cols=" << img.columns() << " rows=" << img.rows() << "  (" << img.fileName() << ")  { " << diptych::Exif((Magick::Image&)img) << " }");
 
 	DIPTYCH_DEBUG_LOG("VF=" << this << " stacking y pos=" << y << " img rows=" << img.rows());
 
@@ -247,6 +221,7 @@ Magick::Image  HImgFrame::_process(const unsigned  trgt_)
 
 
     Magick::Image  dest(Magick::Geometry(w+2*_padding.extnl, imgs.front().rows()+2*_padding.extnl), thegopts.frame.colour);
+    dest.magick("RGB");
     DIPTYCH_DEBUG_LOG("HF=" << this << " target=" << dest.columns() << "x" << dest.rows() << " (w/o border=" << w << 'x' << imgs.front().rows() << ")");
 
     dest.resolutionUnits(Magick::PixelsPerInchResolution);
