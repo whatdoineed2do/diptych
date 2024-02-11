@@ -83,10 +83,6 @@ class ImgFrame : public Frame
 
     Magick::Image  process(const unsigned);
 
-    /* consolidated exif across all the push_back'd img frames
-     */
-    const Exif&  exif() const;
-
     const unsigned  size() const
     { return _imgs.size(); }
 
@@ -100,8 +96,6 @@ class ImgFrame : public Frame
     ImgFrame::Imgs  _imgs;
 
     virtual Magick::Image  _process(const unsigned  trgt_) = 0;
-
-    bool  _cmpExif(const Magick::Image& img_);
 
     /*mutable*/ Padding&  _padding;
 
@@ -125,7 +119,7 @@ class VImgFrame : public ImgFrame
     { }
 
   private:
-    Magick::Image  _process(const unsigned  trgt_);
+    Magick::Image  _process(const unsigned  trgt_) override;
 };
 
 class HImgFrame : public ImgFrame
@@ -135,7 +129,7 @@ class HImgFrame : public ImgFrame
     { }
 
   private:
-    Magick::Image  _process(const unsigned  trgt_);
+    Magick::Image  _process(const unsigned  trgt_) override;
 };
 
 }

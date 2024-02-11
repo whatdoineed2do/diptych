@@ -28,7 +28,39 @@ const std::string  Exif::TAG_focallen  = "exif:FocalLength";
 
 std::ostream&  operator<<(std::ostream& os_, const Exif& obj_)
 {
-    return os_ << "make=" << obj_.make << " model=" << obj_.model << " date=" << obj_.dateorig << " focallen=" << obj_.focallen << " max f/=" << obj_.maxaperture;
+    os_ << "make=" << obj_.make << " model=" << obj_.model << " date=" << obj_.dateorig << " focallen=" << obj_.focallen << " max f/=" << obj_.maxaperture;
+#ifdef HAVE_EXIV2
+    const std::array  excl {
+	"Exif.Photo.MakerNote",
+	"Exif.NikonSi02xx.0x027a",
+	"Exif.NikonCb2b.0x0002",
+	"Exif.NikonFi.0x000a",
+	"Exif.Nikon3.0x002b",
+	"Exif.Nikon3.0x002c",
+	"Exif.Nikon3.ContrastCurve",
+	"Exif.NikonSi02xx.0x0257",
+	"Exif.NikonCb2b.0x0095",
+	"Exif.NikonSi02xx.0x0004",
+	"Exif.NikonSi02xx.0x0072",
+	"Exif.NikonSi02xx.0x0076",
+	"Exif.NikonSi02xx.0x0159",
+	"Exif.NikonSi02xx.0x01af",
+	"Exif.Nikon3.0x0e19",
+	"Exif.NikonSi02xx.0x0083",
+	"Exif.Image.StripByteCounts",
+	"Exif.Image.StripOffsets",
+	"Exif.Image.PrimaryChromaticities"
+    };
+
+    for (const auto& e : obj_.meta) {
+	auto  k = std::find(excl.begin(), excl.end(), e.key());
+	if (k != excl.end()) continue;
+
+        os_ << " " << e.key() << "=" << e.toString();
+    }
+#endif
+
+    return os_;
 }
 
 
@@ -47,7 +79,7 @@ Exif::Exif(Magick::Image& img_)
 }
 
 Exif::Exif(const Exif& rhs_)
-    : make(rhs_.make), model(rhs_.model), dateorig(rhs_.dateorig), artist(rhs_.artist), copyright(rhs_.copyright), maxaperture(rhs_.maxaperture), focallen(rhs_.focallen), exif(rhs_.exif)
+    : make(rhs_.make), model(rhs_.model), dateorig(rhs_.dateorig), artist(rhs_.artist), copyright(rhs_.copyright), maxaperture(rhs_.maxaperture), focallen(rhs_.focallen), meta(rhs_.meta)
 { }
 
 const Exif& Exif::operator=(const Exif& rhs_)
@@ -61,7 +93,7 @@ const Exif& Exif::operator=(const Exif& rhs_)
 	maxaperture = rhs_.maxaperture;
 	focallen  = rhs_.focallen;
 
-	exif = rhs_.exif;
+	meta = rhs_.meta;
     }
     return *this;
 }
@@ -101,15 +133,19 @@ void  Exif::_copyExif(Magick::Image& img_)
 	img_.write(&raw);
 	const Magick::Blob  orig(raw.data(), raw.length());
 
+	img_.read(orig);
+
 	const auto  exiv = Exiv2::ImageFactory::open((const Exiv2::byte*)raw.data(), raw.length());
 	exiv->readMetadata();
-	exif = exiv->exifData();
+	const auto&  exif = exiv->exifData();
 
-	img_.read(orig);
+	meta.clear();
+	std::copy(exif.begin(), exif.end(), std::back_inserter(meta));
+	meta.sort();
     }
     catch (const std::exception& ex)
     {
-	DIPTYCH_VERBOSE_LOG("failed to copy exif on " << img_.fileName() << " - " << ex.what());
+	std::cerr << "failed to copy exif on " << img_.fileName() << " - " << ex.what() << "\n";
     }
 #endif
 }
@@ -130,10 +166,22 @@ void  Exif::copy(Magick::Image& img_)
 void  Exif::assign(Magick::Image& img_) 
 {
 #ifdef HAVE_EXIV2
+    if (meta.empty()) {
+        return;
+    }
+
+
     unsigned char*  ebuf = nullptr;
     try
     {
 	// and attach the exif
+	Exiv2::ExifData  exif;
+	for (const auto& e : meta) {
+	    exif.add(e);
+	}
+
+std::cout << "assign: " << *this << "\n";
+
 	Exiv2::Blob  evraw;
 	Exiv2::ExifParser::encode(evraw, Exiv2::littleEndian, (Exiv2::ExifData&)exif);
 	ebuf = new unsigned char[6+evraw.size()];
@@ -163,13 +211,14 @@ void  Exif::merge(const Exif& rhs_)
 #ifdef HAVE_EXIV2
     try
     {
-	if (meta.empty()) {
-	    std::copy(exif.begin(), exif.end(), std::back_inserter(meta));
-	    meta.sort();
+	meta.sort();
+
+	auto  e = rhs_.meta;
+	if (e.empty()) {
+	   return;
 	}
 
-	auto  e = rhs_.exif;
-	e.sortByKey();
+	e.sort();
 
 	Exiv2::ExifMetadata  out;
 	std::set_intersection(meta.begin(), meta.end(), e.begin(), e.end(),
@@ -197,6 +246,10 @@ bool  Exif::clean(const Exif& rhs_)
     if (copyright   != rhs_.copyright)    copyright.clear();
     if (maxaperture != rhs_.maxaperture)  maxaperture.clear();
     if (focallen    != rhs_.focallen)     focallen.clear();
+
+#ifdef HAVE_EXIV2
+    meta.clear();
+#endif
 
     return true;
 }

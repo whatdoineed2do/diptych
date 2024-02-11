@@ -65,11 +65,9 @@ class Exif
     std::string  focallen;
 
 #ifdef HAVE_EXIV2
-    Exiv2::ExifData  exif;
-
     Exiv2::ExifMetadata  meta;  // sorted and merged
 #else
-    void  exif;
+    void  meta;
 #endif
 
   private:

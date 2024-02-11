@@ -294,6 +294,7 @@ usage:
 	}
     }
 
+
     if (reqfiles != argc - optind) {
 	std::cerr << argv0 << ": insufficient files, req=" << reqfiles << " provided=" << argc-optind << std::endl;
 	goto usage;

@@ -15,12 +15,6 @@ std::ostream&  operator<<(std::ostream& os_, const ImgFrame& obj_)
     return os_ << "[" << obj_.size() << "] {back rows="  << obj_.back().rows() << " cols=" << obj_.back().cols() << "}";
 }
 
-const Exif&  ImgFrame::exif() const
-{ 
-    static Exif  tmp;
-    return _exif ? *_exif : tmp;
-}
-
 Magick::Image  ImgFrame::process(const unsigned  trgt_)
 {
     if (_imgs.empty()) {
@@ -29,13 +23,11 @@ Magick::Image  ImgFrame::process(const unsigned  trgt_)
     /* everything is now same width or height so need to create the final
      * img
      */
-    Magick::Image  img = _process(trgt_);
-
-    if (exif()) {
-        _exif->assign(img);
-    }
+    auto  img = _process(trgt_);
+std::cout << "ImgFrame::process  " << diptych::Exif(img) << "\n";  // TODO
     return img;
 }
+
 ImgFrame::~ImgFrame()
 {
     for (auto& i : _imgs) {
@@ -164,7 +156,7 @@ Magick::Image  VImgFrame::_process(const unsigned  trgt_)
      */
 
     Magick::Image  dest(Magick::Geometry(imgs.front().columns(), trgt_), thegopts.border.colour);
-    dest.magick("RGB");
+    dest.magick("TIFF");
 
     DIPTYCH_VERBOSE_LOG("vert frame dest cols=" << dest.columns() << " rows=" << dest.rows() << " seperator=" << _padding.intnl << " colour=" << thegopts.border.colour);
 
@@ -182,6 +174,8 @@ Magick::Image  VImgFrame::_process(const unsigned  trgt_)
 
     // replace the common exiv metadata to the final image
     exif.copy(dest);
+std::cout << "v0: " << exif << "\n";  // TODO
+std::cout << "v1: " << diptych::Exif(dest) << "\n";  // TODO
 
     return dest;
 }
@@ -205,6 +199,7 @@ Magick::Image  HImgFrame::_process(const unsigned  trgt_)
 	    exif.merge(img);
 	    ep = &exif;
 	}
+std::cout << "h:  " << exif << "\n";  // TODO
     }
 
 
@@ -221,7 +216,7 @@ Magick::Image  HImgFrame::_process(const unsigned  trgt_)
 
 
     Magick::Image  dest(Magick::Geometry(w+2*_padding.extnl, imgs.front().rows()+2*_padding.extnl), thegopts.frame.colour);
-    dest.magick("RGB");
+    dest.magick("TIFF");
     DIPTYCH_DEBUG_LOG("HF=" << this << " target=" << dest.columns() << "x" << dest.rows() << " (w/o border=" << w << 'x' << imgs.front().rows() << ")");
 
     dest.resolutionUnits(Magick::PixelsPerInchResolution);
