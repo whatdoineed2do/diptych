@@ -49,7 +49,8 @@ std::ostream&  operator<<(std::ostream& os_, const Exif& obj_)
 	"Exif.NikonSi02xx.0x0083",
 	"Exif.Image.StripByteCounts",
 	"Exif.Image.StripOffsets",
-	"Exif.Image.PrimaryChromaticities"
+	"Exif.Image.PrimaryChromaticities",
+	"Exif.Image.PhotometricInterpretation"
     };
 
     for (const auto& e : obj_.meta) {
@@ -179,8 +180,6 @@ void  Exif::assign(Magick::Image& img_)
 	for (const auto& e : meta) {
 	    exif.add(e);
 	}
-
-std::cout << "assign: " << *this << "\n";
 
 	Exiv2::Blob  evraw;
 	Exiv2::ExifParser::encode(evraw, Exiv2::littleEndian, (Exiv2::ExifData&)exif);
